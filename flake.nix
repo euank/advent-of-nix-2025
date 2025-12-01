@@ -1,7 +1,7 @@
 {
   description = "Advent of code, 2025, solved with nix";
 
-  inputs = {};
+  inputs = { };
 
   outputs =
     { ... }:
