@@ -7,7 +7,7 @@
     { ... }:
     let
       lib = import ./lib.nix;
-      dayDirs = lib.filterAttrs (name: _: lib.hasPrefix "day" name) (builtins.readDir ./.);
+      dayDirs = lib.attrs.filter (name: _: lib.strings.hasPrefix "day" name) (builtins.readDir ./.);
     in
     {
       inherit lib;
