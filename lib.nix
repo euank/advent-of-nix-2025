@@ -1,15 +1,48 @@
 rec {
-  inherit (builtins) removeAttrs attrNames filter;
 
-  strHead = builtins.substring 0 1;
-  strTail = s: let len = builtins.stringLength s; in builtins.substring 1 (len - 1) s;
+  lists = {
+    head = builtins.head;
+    tail = builtins.tail;
+    length = builtins.length;
+  };
 
-  hasPrefix = prefix: str:
-    if (builtins.stringLength prefix) == 0 then true
-    else if (builtins.stringLength str) == 0 then false
-    else if (strHead prefix) == (strHead str) then hasPrefix (strTail prefix) (strTail str)
-    else false;
+  strings = rec {
+    length = builtins.stringLength;
 
-  # taken verbatim from nixpkgs, copyright nix authors etc
-  filterAttrs = pred: set: removeAttrs set (filter (name: !pred name set.${name}) (attrNames set));
+    head = builtins.substring 0 1;
+    tail = s: let len = builtins.stringLength s; in builtins.substring 1 (len - 1) s;
+
+    split = sep: str:
+      let
+        sepLen = length sep;
+        strLen = length str;
+        isSep = (builtins.substring 0 sepLen str) == sep;
+        rest = if isSep then (split sep (builtins.substring sepLen (strLen - sepLen) str)) else (split sep (builtins.substring 1 (strLen - 1) str));
+      in
+      if strLen < sepLen then [ str ]
+      else if isSep then [ "" ] ++ rest
+      else
+        let restHead = lists.head rest;
+        in [ ((head str) + restHead) ] ++ (lists.tail rest);
+
+    hasPrefix = prefix: str:
+      if (builtins.stringLength prefix) == 0 then true
+      else if (builtins.stringLength str) == 0 then false
+      else if (head prefix) == (head str) then hasPrefix (tail prefix) (tail str)
+      else false;
+  };
+
+
+  attrs = rec {
+    inherit (builtins) removeAttrs attrNames;
+    # taken verbatim from nixpkgs, copyright nix authors etc
+    filter = pred: set: removeAttrs set (builtins.filter (name: !pred name set.${name}) (attrNames set));
+  };
+
+  ints = rec {
+    mod = x: y:
+      if x < 0 then (mod (x + y) y)
+      else if x >= y then (mod (x - y) y)
+      else x;
+  };
 }
