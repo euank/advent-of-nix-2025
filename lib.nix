@@ -40,9 +40,14 @@ rec {
   };
 
   ints = rec {
+    parse = builtins.fromJSON;
     mod = x: y:
       if x < 0 then (mod (x + y) y)
       else if x >= y then (mod (x - y) y)
       else x;
+
+    log10 = v: if v == 0 then 0 else 1 + (log10 (v / 10));
+
+    pow = x: y: if y == 1 then x else x * (pow x (y - 1));
   };
 }
