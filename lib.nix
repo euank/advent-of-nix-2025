@@ -30,8 +30,24 @@ rec {
       else if (builtins.stringLength str) == 0 then false
       else if (head prefix) == (head str) then hasPrefix (tail prefix) (tail str)
       else false;
+
+      removePrefix = p: s:
+        if hasPrefix p s then builtins.substring (length p) ((length p) - (length s)) s
+        else s;
+
+      removePrefix' = p: s:
+        if hasPrefix p s then removePrefix' (builtins.substring (length p) ((length p) - (length s)) s)
+        else s;
   };
 
+  lists = {
+    # unique unique's a list for things that can be compared with ==. It does not preserve order.
+    # Abuse genericClosure for it since it dedupes lol
+    unique = xs: builtins.map (x: x.key) (builtins.genericClosure {
+      startSet = builtins.map (x: { key = x; }) xs;
+      operator = item: [ item ];
+    });
+  };
 
   attrs = rec {
     inherit (builtins) removeAttrs attrNames;
@@ -40,7 +56,8 @@ rec {
   };
 
   ints = rec {
-    parse = builtins.fromJSON;
+    parse = s: builtins.fromJSON (strings.removePrefix "0" s);
+
     mod = x: y:
       if x < 0 then (mod (x + y) y)
       else if x >= y then (mod (x - y) y)
@@ -48,6 +65,15 @@ rec {
 
     log10 = v: if v == 0 then 0 else 1 + (log10 (v / 10));
 
-    pow = x: y: if y == 1 then x else x * (pow x (y - 1));
+    pow =
+      x: n:
+      if n == 0 then
+      1
+      else if (mod n 2) == 0 then
+      pow (x * x) (n / 2)
+      else
+      x * (pow (x * x) ((n - 1) / 2));
   };
+
+  traceVal = x: builtins.trace x x;
 }

@@ -27,7 +27,7 @@ let
 
         candidates = map (c: c * (ints.pow 10 hl) + c) halfCandidates;
       in
-      builtins.filter (c: c >= range.from && c <= range.to && (ints.mod ((strings.length (builtins.toString c))) 2) == 0) candidates;
+      builtins.filter (c: c >= range.from && c <= range.to && (ints.mod (strings.length (builtins.toString c)) 2) == 0) candidates;
 
 
   # We want to find IDs where the first and second half are the same in a given range
@@ -59,7 +59,57 @@ let
       idsInRanges = map invalidIDsInRange p;
     in
     builtins.foldl' builtins.add 0 (builtins.concatLists idsInRanges);
+
+
+  # I guess I could run the same algorithm making the 'mod' variable and plumbing through the number of repeats.
+  # max repeats is I guess length of the larger number in digits.
+  # Sure, let's try it.
+  repeatN = c: n: max:
+  let
+    l = ints.log10 c;
+    r2 = (ints.pow 10 l) * c + c;
+    r2' = (repeatN c (n - 1) max);
+    ret = if c > max then null
+    else if n == 1 then c
+    else if (ints.mod n 2) == 0 then repeatN r2 (n / 2) max
+    else if r2' == null then null
+    else (ints.pow 10 l) * r2' + c;
+  in
+  if ret == null || ret > max then null else ret;
+
+  invalidIDsInRangeOfLenPt2Repeats = range: len: repeats:
+    if (ints.mod len repeats) != 0 then [ ]
+    else
+      let
+        lowerPartBound = (range.from / (ints.pow 10 (len - (len / repeats))));
+        upperPartBound = 1 + (range.to / (ints.pow 10 (len - (len / repeats))));
+        partCandidates = builtins.genList (i: i + lowerPartBound) (upperPartBound - lowerPartBound);
+
+        candidates = builtins.filter (p: p != null) (builtins.map (p: repeatN p repeats range.to) partCandidates);
+      in
+      builtins.filter (c: c >= range.from && c <= range.to && (ints.mod (strings.length (builtins.toString c)) repeats) == 0) candidates;
+
+  invalidIDsInRangeOfLenPt2 = range: len:
+  let
+    maxRepeats = (ints.log10 range.to);
+  in
+  lists.unique (builtins.concatMap (r: invalidIDsInRangeOfLenPt2Repeats range len r) (builtins.genList (i: i + 2) (maxRepeats - 1)));
+
+  invalidIDsInRangePt2 = range:
+    let
+      lowerLen = ints.log10 range.from;
+      upperLen = ints.log10 range.to;
+    in
+    builtins.foldl' (acc: l: acc ++ (invalidIDsInRangeOfLenPt2 range l)) [ ] (builtins.genList (i: i + lowerLen) (upperLen - lowerLen + 1));
+
+  part2 =
+    let
+      p = parse input;
+      idsInRanges = map invalidIDsInRangePt2 p;
+    in
+    builtins.foldl' builtins.add 0 (builtins.concatLists idsInRanges);
+
 in
 {
-  inherit part1;
+  inherit part1 part2;
 }
