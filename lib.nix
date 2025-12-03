@@ -31,13 +31,13 @@ rec {
       else if (head prefix) == (head str) then hasPrefix (tail prefix) (tail str)
       else false;
 
-      removePrefix = p: s:
-        if hasPrefix p s then builtins.substring (length p) ((length p) - (length s)) s
-        else s;
+    removePrefix = p: s:
+      if hasPrefix p s then builtins.substring (length p) ((length p) - (length s)) s
+      else s;
 
-      removePrefix' = p: s:
-        if hasPrefix p s then removePrefix' (builtins.substring (length p) ((length p) - (length s)) s)
-        else s;
+    removePrefix' = p: s:
+      if hasPrefix p s then removePrefix' (builtins.substring (length p) ((length p) - (length s)) s)
+      else s;
   };
 
   lists = {
@@ -68,11 +68,11 @@ rec {
     pow =
       x: n:
       if n == 0 then
-      1
+        1
       else if (mod n 2) == 0 then
-      pow (x * x) (n / 2)
+        pow (x * x) (n / 2)
       else
-      x * (pow (x * x) ((n - 1) / 2));
+        x * (pow (x * x) ((n - 1) / 2));
   };
 
   traceVal = x: builtins.trace x x;
