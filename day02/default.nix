@@ -65,17 +65,18 @@ let
   # max repeats is I guess length of the larger number in digits.
   # Sure, let's try it.
   repeatN = c: n: max:
-  let
-    l = ints.log10 c;
-    r2 = (ints.pow 10 l) * c + c;
-    r2' = (repeatN c (n - 1) max);
-    ret = if c > max then null
-    else if n == 1 then c
-    else if (ints.mod n 2) == 0 then repeatN r2 (n / 2) max
-    else if r2' == null then null
-    else (ints.pow 10 l) * r2' + c;
-  in
-  if ret == null || ret > max then null else ret;
+    let
+      l = ints.log10 c;
+      r2 = (ints.pow 10 l) * c + c;
+      r2' = (repeatN c (n - 1) max);
+      ret =
+        if c > max then null
+        else if n == 1 then c
+        else if (ints.mod n 2) == 0 then repeatN r2 (n / 2) max
+        else if r2' == null then null
+        else (ints.pow 10 l) * r2' + c;
+    in
+    if ret == null || ret > max then null else ret;
 
   invalidIDsInRangeOfLenPt2Repeats = range: len: repeats:
     if (ints.mod len repeats) != 0 then [ ]
@@ -90,10 +91,10 @@ let
       builtins.filter (c: c >= range.from && c <= range.to && (ints.mod (strings.length (builtins.toString c)) repeats) == 0) candidates;
 
   invalidIDsInRangeOfLenPt2 = range: len:
-  let
-    maxRepeats = (ints.log10 range.to);
-  in
-  lists.unique (builtins.concatMap (r: invalidIDsInRangeOfLenPt2Repeats range len r) (builtins.genList (i: i + 2) (maxRepeats - 1)));
+    let
+      maxRepeats = (ints.log10 range.to);
+    in
+    lists.unique (builtins.concatMap (r: invalidIDsInRangeOfLenPt2Repeats range len r) (builtins.genList (i: i + 2) (maxRepeats - 1)));
 
   invalidIDsInRangePt2 = range:
     let
