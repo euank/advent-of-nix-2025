@@ -4,6 +4,7 @@ rec {
     head = builtins.head;
     tail = builtins.tail;
     length = builtins.length;
+    sum = builtins.foldl' builtins.add 0;
   };
 
   strings = rec {
@@ -20,6 +21,8 @@ rec {
         rest = if isSep then (split sep (builtins.substring sepLen (strLen - sepLen) str)) else (split sep (builtins.substring 1 (strLen - 1) str));
       in
       if strLen < sepLen then [ str ]
+      else if strLen == 0 then [ ]
+      else if sepLen == 0 then [ (builtins.substring 0 1 str) ] ++ (split sep (builtins.substring 1 (strLen - 1) str))
       else if isSep then [ "" ] ++ rest
       else
         let restHead = lists.head rest;
