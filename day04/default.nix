@@ -22,7 +22,21 @@ let
     builtins.foldl' builtins.add 0 (lists.flatten (arr2.imap (x: y: el: if el == "@" && (canAccess grid x y) then 1 else 0) grid));
 
   part1 = doPart1 grid;
+
+  doPart2 = grid:
+    let
+      # this time's accessed
+      vals = arr2.imap (x: y: el: if el == "@" && (canAccess grid x y) then 1 else 0) grid;
+      # update grid
+      grid' = arr2.imap (x: y: val: if (arr2.get vals x y) == 1 then "." else val) grid;
+      accessed = builtins.foldl' builtins.add 0 (lists.flatten vals);
+    in
+    if accessed == 0 then 0
+    else accessed + (doPart2 grid');
+
+  part2 = doPart2 grid;
+
 in
 {
-  inherit part1;
+  inherit part1 part2;
 }
