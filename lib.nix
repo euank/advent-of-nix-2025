@@ -5,6 +5,8 @@ rec {
     tail = builtins.tail;
     length = builtins.length;
     sum = builtins.foldl' builtins.add 0;
+
+    flatten = builtins.foldl' (acc: x: acc ++ x) [ ];
   };
 
   strings = rec {
@@ -76,6 +78,57 @@ rec {
         pow (x * x) (n / 2)
       else
         x * (pow (x * x) ((n - 1) / 2));
+  };
+
+  # arr2 contains functions for dealing with 2d arrays
+  arr2 = rec {
+    inherit (builtins) length elemAt genList head;
+
+    width = arr: if (length arr) == 0 then 0 else length (elemAt arr 0);
+    height = length;
+
+    get =
+      arr: x: y:
+      elemAt (elemAt arr y) x;
+
+    set =
+      arr: x: y: val:
+      imap
+        (
+          x': y': el:
+          if x == x' && y == y' then val else el
+        )
+        arr;
+
+    getDef =
+      arr: x: y: def:
+      if x < 0 || y < 0 then
+        def
+      else if x >= (width arr) || y >= (height arr) then
+        def
+      else
+        elemAt (elemAt arr y) x;
+
+    map = f: arr: genList (y: genList (x: f (get arr x y)) (length (head arr))) (length arr);
+    imap = f: arr: genList (y: genList (x: f x y (get arr x y)) (length (head arr))) (length arr);
+
+    swap =
+      arr: x: y: x': y':
+      let
+        el = get arr x y;
+        el' = get arr x' y';
+      in
+      imap
+        (
+          xx: yy: orig:
+          if xx == x && yy == y then
+            el'
+          else if xx == x' && yy == y' then
+            el
+          else
+            orig
+        )
+        arr;
   };
 
   traceVal = x: builtins.trace x x;
