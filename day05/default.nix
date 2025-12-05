@@ -60,7 +60,14 @@ let
     in
     countFresh data;
 
+
+  part2 =
+    let
+      data = mergeRanges (parse input);
+    in
+    builtins.foldl' (acc: range: acc + (range.to - range.from + 1)) 0 data.ranges;
+
 in
 {
-  inherit part1;
+  inherit part1 part2;
 }
