@@ -1,8 +1,11 @@
 rec {
-
-  lists = {
+  lists = rec {
+    elemAt = builtins.elemAt;
+    gen = builtins.genList;
     head = builtins.head;
+    last = xs: elemAt xs ((length xs) - 1);
     tail = builtins.tail;
+    init = xs: gen (n: elemAt xs n) ((length xs) - 1);
     length = builtins.length;
     sum = builtins.foldl' builtins.add 0;
 
@@ -62,6 +65,9 @@ rec {
 
   ints = rec {
     parse = s: builtins.fromJSON (strings.removePrefix "0" s);
+
+    max = x: y: if x > y then x else y;
+    min = x: y: if x < y then x else y;
 
     mod = x: y:
       if x < 0 then (mod (x + y) y)
