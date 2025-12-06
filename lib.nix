@@ -33,6 +33,9 @@ rec {
         let restHead = lists.head rest;
         in [ ((head str) + restHead) ] ++ (lists.tail rest);
 
+    splitSpace = str: builtins.filter builtins.isString (builtins.split "[ \t]+" str);
+
+
     hasPrefix = prefix: str:
       if (builtins.stringLength prefix) == 0 then true
       else if (builtins.stringLength str) == 0 then false
