@@ -1,6 +1,7 @@
 rec {
   lists = rec {
     elemAt = builtins.elemAt;
+    getDef = arr: idx: def: if idx >= (length arr) then def else elemAt arr idx;
     gen = builtins.genList;
     head = builtins.head;
     last = xs: elemAt xs ((length xs) - 1);
@@ -8,6 +9,8 @@ rec {
     init = xs: gen (n: elemAt xs n) ((length xs) - 1);
     length = builtins.length;
     sum = builtins.foldl' builtins.add 0;
+
+    imap = f: arr: builtins.genList (i: f i (elemAt arr i)) (length arr);
 
     flatten = builtins.foldl' (acc: x: acc ++ x) [ ];
   };
