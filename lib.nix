@@ -144,4 +144,6 @@ rec {
   };
 
   traceVal = x: builtins.trace x x;
+
+  seq = s: builtins.deepSeq s s;
 }
