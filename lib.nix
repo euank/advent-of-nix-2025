@@ -18,8 +18,14 @@ rec {
   strings = rec {
     length = builtins.stringLength;
 
+    lines = input: split "\n" (trimSuffix "\n" input);
+
+    trimSuffix = suffix: str: if (last str) == suffix then trimSuffix suffix (init str) else str;
+
     head = builtins.substring 0 1;
+    last = s: builtins.substring ((length s) - 1) 1 s;
     tail = s: let len = builtins.stringLength s; in builtins.substring 1 (len - 1) s;
+    init = s: builtins.substring 0 ((length s) - 2) s;
 
     split = sep: str:
       let
