@@ -10,6 +10,12 @@ rec {
     length = builtins.length;
     sum = builtins.foldl' builtins.add 0;
 
+    set = arr: idx: val: imap (i: el: if i == idx then val else el) arr;
+
+    take = n: arr:
+      if n == 0 then [ ]
+      else [ (head arr) ] ++ (take (n - 1) (tail arr));
+
     imap = f: arr: builtins.genList (i: f i (elemAt arr i)) (length arr);
 
     flatten = builtins.foldl' (acc: x: acc ++ x) [ ];
@@ -18,8 +24,14 @@ rec {
   strings = rec {
     length = builtins.stringLength;
 
+    lines = input: split "\n" (trimSuffix "\n" input);
+
+    trimSuffix = suffix: str: if (last str) == suffix then trimSuffix suffix (init str) else str;
+
     head = builtins.substring 0 1;
+    last = s: builtins.substring ((length s) - 1) 1 s;
     tail = s: let len = builtins.stringLength s; in builtins.substring 1 (len - 1) s;
+    init = s: builtins.substring 0 ((length s) - 1) s;
 
     split = sep: str:
       let
@@ -74,6 +86,8 @@ rec {
 
     max = x: y: if x > y then x else y;
     min = x: y: if x < y then x else y;
+
+    abs = x: if x < 0 then x * (-1) else x;
 
     mod = x: y:
       if x < 0 then (mod (x + y) y)
