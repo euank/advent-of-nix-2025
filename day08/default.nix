@@ -14,7 +14,7 @@ let
   # and use a kNN search for the nearest neighbors that way, right?
   # Except, there's only 1000 points, we can just pair them all up, and that's only 1 million pairs.
   # 1 million pairs is easy to compute, let's just do that.
-  part1 =
+  res =
     let
       p = parse input;
 
@@ -41,20 +41,33 @@ let
           lhsCircuit = state.lookup."${toString lhs}" or null;
           rhsCircuit = state.lookup."${toString rhs}" or null;
         in
-        if state.numConnections == 1000 then state
-        else if lhs == rhs then builtins.throw "This should not happen"
+        if state.numConnections == 1000 && state.part1 == null then
+          mergeCircuits
+            (state // {
+              part1 =
+                let sizes = map (v: 1 + (builtins.length (builtins.attrNames v))) (builtins.attrValues state.circuits);
+                in builtins.foldl' builtins.mul 1 (lists.take 3 (builtins.sort (x: y: x > y) sizes));
+            })
+            rem
         # This case means they're both in the same circuit already, skip
         else if lhsCircuit != null && lhsCircuit == rhsCircuit then
           mergeCircuits
             {
-              inherit (state) circuits lookup;
+              inherit (state) circuits lookup numCircuits part1;
               numConnections = state.numConnections + 1;
             }
             (lists.tail rem)
+        else if state.numCircuits == 2 then # end state for pt2
+          {
+            part1 = state.part1;
+            part2 = (lists.elemAt p lhs).x * (lists.elemAt p rhs).x;
+          }
         # rhs gets added to lhs circuit
         else if lhsCircuit != null && rhsCircuit == null then
           mergeCircuits
             {
+              inherit (state) part1;
+              numCircuits = state.numCircuits - 1;
               numConnections = state.numConnections + 1;
               circuits = state.circuits // {
                 "${toString lhsCircuit}" = state.circuits."${toString lhsCircuit}" // { "${toString rhs}" = { }; };
@@ -68,6 +81,8 @@ let
         else if rhsCircuit != null && lhsCircuit == null then
           mergeCircuits
             {
+              inherit (state) part1;
+              numCircuits = state.numCircuits - 1;
               numConnections = state.numConnections + 1;
               circuits = state.circuits // {
                 "${toString rhsCircuit}" = state.circuits."${toString rhsCircuit}" // { "${toString lhs}" = { }; };
@@ -81,6 +96,8 @@ let
         else if rhsCircuit != null && lhsCircuit != null then
           mergeCircuits
             {
+              inherit (state) part1;
+              numCircuits = state.numCircuits - 1;
               numConnections = state.numConnections + 1;
               circuits = (builtins.removeAttrs state.circuits [ "${toString rhsCircuit}" ]) // {
                 "${toString lhsCircuit}" = state.circuits."${toString lhsCircuit}" // (state.circuits."${toString rhsCircuit}" // {
@@ -95,6 +112,8 @@ let
         then
           mergeCircuits
             {
+              inherit (state) part1;
+              numCircuits = state.numCircuits - 1;
               numConnections = state.numConnections + 1;
               circuits = state.circuits // {
                 "${toString lhs}" = { "${toString rhs}" = { }; };
@@ -106,11 +125,15 @@ let
             }
             (lists.tail rem)
         else builtins.throw "Oops";
-      merged = mergeCircuits { numConnections = 0; circuits = { }; lookup = { }; } pairs;
-      sizes = map (v: 1 + (builtins.length (builtins.attrNames v))) (builtins.attrValues merged.circuits);
     in
-    builtins.foldl' builtins.mul 1 (lists.take 3 (builtins.sort (x: y: x > y) sizes));
+    mergeCircuits
+      {
+        part1 = null;
+        numCircuits = (lists.length p);
+        numConnections = 0;
+        circuits = { };
+        lookup = { };
+      }
+      pairs;
 in
-{
-  inherit part1;
-}
+res
