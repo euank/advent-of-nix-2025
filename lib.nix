@@ -19,6 +19,9 @@ rec {
     imap = f: arr: builtins.genList (i: f i (elemAt arr i)) (length arr);
 
     flatten = builtins.foldl' (acc: x: acc ++ x) [ ];
+
+    any = pred: xs: if (length xs) == 0 then false else if (pred (head xs)) then true else (any pred (tail xs));
+    all = pred: xs: if (length xs) == 0 then true else if ! (pred (head xs)) then false else (all pred (tail xs));
   };
 
   strings = rec {
