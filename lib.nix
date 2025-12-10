@@ -36,6 +36,8 @@ rec {
     tail = s: let len = builtins.stringLength s; in builtins.substring 1 (len - 1) s;
     init = s: builtins.substring 0 ((length s) - 1) s;
 
+    chars = split "";
+
     split = sep: str:
       let
         sepLen = length sep;
@@ -85,7 +87,7 @@ rec {
   };
 
   ints = rec {
-    parse = s: builtins.fromJSON (strings.removePrefix "0" s);
+    parse = s: let trimmed = strings.removePrefix "0" s; in if trimmed == "" && s != "" then 0 else builtins.fromJSON trimmed;
 
     max = x: y: if x > y then x else y;
     min = x: y: if x < y then x else y;
