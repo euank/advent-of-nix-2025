@@ -1,16 +1,28 @@
 rec {
+  isNull = builtins.isNull;
+
+  trivial = {
+    id = x: x;
+  };
+
   lists = rec {
-    elemAt = builtins.elemAt;
+    inherit (builtins) elemAt head tail length filter;
     getDef = arr: idx: def: if idx >= (length arr) then def else elemAt arr idx;
     gen = builtins.genList;
-    head = builtins.head;
     last = xs: elemAt xs ((length xs) - 1);
-    tail = builtins.tail;
     init = xs: gen (n: elemAt xs n) ((length xs) - 1);
-    length = builtins.length;
     sum = builtins.foldl' builtins.add 0;
+    reverse = xs: builtins.genList (i: elemAt xs ((length xs) - i - 1)) (length xs);
+
+    swap = xs: x: x': imap (i: el: if i == x then (elemAt xs x') else if i == x' then (elemAt xs x) else el) xs;
+
+    firstIndexOf = arr: f: if (length arr) == 0 then null else if f (head arr) then 0 else let subIdx = firstIndexOf (tail arr) f; in if subIdx == null then null else 1 + subIdx;
+
+    lastIndexOf = arr: f: let fi = firstIndexOf (reverse arr) f; in if fi == null then null else (length arr) - fi - 1;
 
     set = arr: idx: val: imap (i: el: if i == idx then val else el) arr;
+
+    drop = n: arr: if n == 0 then arr else if (length arr) == 0 then throw "dropping empty list" else drop (n - 1) (tail arr);
 
     take = n: arr:
       if n == 0 then [ ]
@@ -86,6 +98,19 @@ rec {
     filter = pred: set: removeAttrs set (builtins.filter (name: !pred name set.${name}) (attrNames set));
   };
 
+  floats = rec {
+    # isInt returns if 'f' is within 1e6 of the nearest integer value, so like
+    # '1.999999' or '2.000001' type things, i.e. floating point errors suck.
+    # If it 'isInt', then 'floats.round' may be used to cast to an int.
+    isInt = f:
+      let
+        eps = 1.0e-6;
+      in
+      (ints.abs (f - (round f))) < eps;
+
+    round = x: builtins.floor (x + 0.5);
+  };
+
   ints = rec {
     parse = s: let trimmed = strings.removePrefix "0" s; in if trimmed == "" && s != "" then 0 else builtins.fromJSON trimmed;
 
@@ -143,6 +168,12 @@ rec {
     map = f: arr: genList (y: genList (x: f (get arr x y)) (length (head arr))) (length arr);
     imap = f: arr: genList (y: genList (x: f x y (get arr x y)) (length (head arr))) (length arr);
 
+    getColumn = arr: col: builtins.genList (y: get arr col y) (height arr);
+
+    swapRow = m: row: row2:
+      lists.set (lists.set m row (elemAt m row2)) row2 (elemAt m row);
+
+
     swap =
       arr: x: y: x': y':
       let
@@ -160,6 +191,10 @@ rec {
             orig
         )
         arr;
+  };
+
+  option = {
+    map = f: val: if val == null then null else f val;
   };
 
   traceVal = x: builtins.trace x x;

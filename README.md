@@ -22,3 +22,10 @@ I've decided to avoid the nixpkgs stdlib for as long as possible this time,
 vendoring in functionality when I need to.
 
 This choice is entirely arbitrary, and I might change my mind.
+
+
+### Day specific notes
+
+### Day 10, part 2
+
+~10 minute runtime, this is the first really slow one
