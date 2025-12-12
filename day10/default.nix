@@ -63,34 +63,17 @@ let
     builtins.foldl' builtins.add 0 (map (p: bruteforceProblem { memo = { }; btns = p.btns; goal = p.goal; } [{ depth = 0; val = (map (_: false) p.goal); }]) ps);
 
 
+  # gauss jordan
+  # We don't do anything super fancy like trying to pick the best pivot because
+  # all our values are so small it really shouldn't matter
+  reduceMatrix = state:
+  if state.col == arr2.width matrix then state
+  else
+  let
+    nextNonZeroRow = 0;
+  in
+  null;
 
-  bruteforceProblem2 = state: states:
-    let
-      next = lists.head states;
-      pushButton = state: btn: builtins.foldl' (acc: el: lists.set acc el ((lists.elemAt acc el) + 1)) state btn;
-      nextDiff = v: goal: with lists; if (head v) != (head goal) then 0 else 1 + (nextDiff (tail v) (tail goal));
-    in
-    if next.val == state.goal then next.depth
-    else
-    # We can branch less aggressively if we start by focusing on only one place
-    # at a time, i.e. if the '0'th place is 10, and our cur value is 9, we
-    # _need_ to push one of the button with a '0' in it at some point anyway,
-    # so do that now.
-    # Imposing this order reduces our search space a _lot_ since it means to
-    # get to {2, 2} with the buttons (0, 1) , (1, 0), instead of having paths
-    # like "button 2 twice, button 1 twice", we _only_ consider the ordering of
-    # button 1 first.
-      let
-        mustPressButton = nextDiff next.val state.goal;
-        btnsToPress = builtins.filter (b: builtins.foldl' (acc: el: acc || el == mustPressButton) false b) state.btns;
-      in
-      bruteforceProblem2 state ((lists.tail states) ++ (map (btn: { depth = next.depth + 1; val = pushButton next.val btn; }) btnsToPress));
-
-  part2 =
-    let
-      ps = parse input;
-    in
-    builtins.foldl' builtins.add 0 (map (p: bruteforceProblem2 { memo = { }; btns = p.btns; goal = p.joltage; } [{ depth = 0; val = (map (_: 0) p.joltage); }]) ps);
 
   # This is a linear programming problem. Fine, let's do it.
   # I've opened my "Introduction to Operations Research" book, found the
@@ -100,10 +83,17 @@ let
     let
       b = row.joltage;
       size = lists.length row.joltage;
-      a = builtins.genList (i: builtins.genList (j: (lists.elemAt row.btns j) (lists.length row.btns))) size;
-      ct = a;
+      a = builtins.genList (i: map (btn: if (lists.elemAt btn i) then 1 else 0) row.btns) size;
     in
-    null;
+    {
+      inherit a b;
+    };
+
+  part2 =
+    let
+      ps = parse input;
+    in
+    solveRow (lists.head ps);
 
 in
 {
