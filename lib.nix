@@ -34,6 +34,24 @@ rec {
 
     any = pred: xs: if (length xs) == 0 then false else if (pred (head xs)) then true else (any pred (tail xs));
     all = pred: xs: if (length xs) == 0 then true else if ! (pred (head xs)) then false else (all pred (tail xs));
+
+    # unique unique's a list for things that can be compared with ==. It does not preserve order.
+    # Abuse genericClosure for it since it dedupes lol
+    unique = xs: builtins.map (x: x.key) (builtins.genericClosure {
+      startSet = builtins.map (x: { key = x; }) xs;
+      operator = item: [ item ];
+    });
+
+    # unique2 is unique, but it preserves order. It removes the last elements that are dupes.
+    # It only works on lists that can be 'toString'd
+    unique2 = xs:
+      let
+        unique2' = xs: state:
+          if (length xs) == 0 then [ ]
+          else if (state ? "${toString (head xs)}") then unique2' (tail xs) state
+          else [ (head xs) ] ++ (unique2' (tail xs) (state // { "${toString (head xs)}" = true; }));
+      in
+      unique2' xs { };
   };
 
   strings = rec {
@@ -81,15 +99,6 @@ rec {
     removePrefix' = p: s:
       if hasPrefix p s then removePrefix' (builtins.substring (length p) ((length p) - (length s)) s)
       else s;
-  };
-
-  lists = {
-    # unique unique's a list for things that can be compared with ==. It does not preserve order.
-    # Abuse genericClosure for it since it dedupes lol
-    unique = xs: builtins.map (x: x.key) (builtins.genericClosure {
-      startSet = builtins.map (x: { key = x; }) xs;
-      operator = item: [ item ];
-    });
   };
 
   attrs = rec {
