@@ -52,6 +52,11 @@ rec {
           else [ (head xs) ] ++ (unique2' (tail xs) (state // { "${toString (head xs)}" = true; }));
       in
       unique2' xs { };
+
+    chunk = n: xs:
+      if (length xs) <= n then [ xs ]
+      else [ (take n xs) ] ++ (chunk n (drop n xs));
+
   };
 
   strings = rec {
