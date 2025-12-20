@@ -1,31 +1,55 @@
 ## Advent of Nix 2025
 
-This is my go at Advent of Code (2025) in pure nix.
+This is my solutions to Advent of Code (2025) in pure nix.
 
 ### Running solutions
 
-For almost all solutions you'll need to invoke it as:
+For almost all solutions you'll need to invoke them as:
 
 ```
 $ ulimit -s unlimited
 $ nix eval --max-call-depth 2147483648 '.#dayXX'
 ```
 
-When all you have is recursion, every hammer hit requires a large stack.
-
 In general, `nix eval '.#dayX'` (where 'X' is the number of the day, padded to
 length 2, such as `nix eval '.#day03'`) will display the answer to a given day.
 
 ### Extra constraints
 
-I've decided to avoid the nixpkgs stdlib for as long as possible this time,
-vendoring in functionality when I need to.
+I've decided to avoid the nixpkgs stdlib this time.
+I've vendored a small number of functions into 'lib.nix', but for the most part
+I've derived library functions in lib.nix myself as needed.
 
-This choice is entirely arbitrary, and I might change my mind.
+## Performance
 
+This time things aren't too bad! Check it out
 
-### Day specific notes
+### CPU Time (User + System)
 
-### Day 10, part 2
+```mermaid
+xychart-beta
+    title "CPU Time (User + System)"
+    x-axis [day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12]
+    y-axis "Time (seconds)" 0 --> 280
+    bar [1.43, 0.04, 0.35, 3.80, 0.78, 0.54, 1.02, 111.22, 258.58, 279.46, 0.63, 0.68]
+```
 
-~10 minute runtime, this is the first really slow one
+### Wall Clock Time
+
+```mermaid
+xychart-beta
+    title "Wall Clock Time"
+    x-axis [day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12]
+    y-axis "Time (seconds)" 0 --> 280
+    bar [0.71, 0.05, 0.36, 3.70, 0.59, 0.46, 0.61, 23.53, 67.21, 276.77, 0.58, 0.50]
+```
+
+### Peak Memory Usage
+
+```mermaid
+xychart-beta
+    title "Peak Memory Usage"
+    x-axis [day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12]
+    y-axis "Memory (GB)" 0 --> 52
+    bar [0.94, 0.05, 0.50, 0.55, 0.60, 0.55, 0.55, 20.52, 51.84, 0.72, 0.51, 0.73]
+```

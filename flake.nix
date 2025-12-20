@@ -8,9 +8,10 @@
     let
       lib = import ./lib.nix;
       dayDirs = lib.attrs.filter (name: _: lib.strings.hasPrefix "day" name) (builtins.readDir ./.);
+      days = (builtins.mapAttrs (name: _: import ./${name} { inherit lib; }) dayDirs);
     in
     {
       inherit lib;
-    }
-    // (builtins.mapAttrs (name: _: import ./${name} { inherit lib; }) dayDirs);
+      all = days;
+    } // days;
 }
