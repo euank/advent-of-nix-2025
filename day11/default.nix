@@ -25,28 +25,44 @@ let
       inherit fwd rev;
     };
 
-  # so our goal is to find paths to out. That's the same as summing paths to
-  # all the nodes that go to out, etc recursively.
-  # Doing that naively probably runs into issues since i.e. we could have a path like:
-  solvePart1 = state: q:
-    let
-      el = lists.head q;
-      newq = (lists.tail q) ++ (state.rev."${el}" or [ ]);
-      newq' = lists.unique2 newq;
-      # because of the order we're traversing, all our children are done, let's look em up and update state.
-      paths = builtins.foldl' builtins.add 0 (map (el: state.memo."${el}" or 0) state.fwd."${el}");
-    in
-    if (lists.length q) == 0 then state.memo.you
-    else solvePart1 (state // { memo = state.memo // { "${el}" = paths; }; }) newq';
 
+
+  findPaths = p: from: to:
+    let
+      findPaths' = state:
+        let
+          el = lists.head state.q;
+          newq = (lists.tail state.q) ++ (p.rev."${el}" or [ ]);
+          newq' = lists.unique2 newq;
+          # because of the order we're traversing, all our children are done, let's look em up and update state.
+          paths = builtins.foldl' builtins.add 0 (map (el: state.memo."${el}" or 0) p.fwd."${el}");
+        in
+        if (lists.length state.q) == 0 then (state.memo."${from}" or 0)
+        else findPaths' (state // { q = newq'; memo = state.memo // { "${el}" = paths; }; });
+    in
+    findPaths' { q = p.rev."${to}" or [ ]; memo = { "${to}" = 1; }; };
 
   part1 =
     let
       p = parse input;
     in
-    solvePart1 (p // { memo = { "out" = 1; }; }) p.rev.out;
+    findPaths p "you" "out";
+
+  # So for part2, it seems like we should be able to use the part1 solution, and just do some math,right?
+  # Like, the paths from svr -> out that hit both dac and fft should be:
+  # paths from svr -> fft * paths from fft -> dac * paths from dac -> out
+  # However, the thing is the middle could be fft -> dac, or dac -> fft
+  # it can't be both since there's no cycles, so we just have to try both
+  part2 =
+    let
+      p = parse input;
+      fftDac = findPaths p "fft" "dac";
+      dacFft = findPaths p "dac" "fft";
+    in
+    if fftDac == 0 then [ (findPaths p "svr" "dac") dacFft (findPaths p "fft" "out") ]
+    else (findPaths p "svr" "fft") * fftDac * (findPaths p "dac" "out");
 
 in
 {
-  inherit part1;
+  inherit part1 part2;
 }
