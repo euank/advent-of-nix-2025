@@ -1,6 +1,6 @@
 ## Advent of Nix 2025
 
-This is my solutions to Advent of Code (2025) in pure nix.
+These are my solutions to Advent of Code (2025) in pure nix.
 
 ### Running solutions
 
