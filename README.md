@@ -22,7 +22,18 @@ I've derived library functions in lib.nix myself as needed.
 
 ## Performance
 
-This time things aren't too bad! Check it out
+This time things aren't too bad!
+
+This is the first time I can execute all of the solutions in one shot!
+
+```
+$ time nix eval --max-call-depth 2147483648 '.#all'
+...
+1746.92s  user 13.72s system 315% cpu 9:17.65 total
+max memory: 87637 MB
+```
+
+Under 10 minutes, under 100GiB :D
 
 ### CPU Time (User + System)
 
